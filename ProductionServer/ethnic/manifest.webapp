@@ -1,0 +1,23 @@
+{
+"launch_path": "ethnic.html",
+"default_locale":"en",
+"activities": {
+"dhis": {
+"href": "*"
+}
+},
+"appType": "DASHBOARD_WIDGET",
+"name": "Ethnicity",
+"version": "0.1.0",
+"description": "Table of children vaccination bye Ethnicity at provincial",
+"developer": {
+  "name": "Lipongyang"
+},
+"key": "Ethnicity",
+"short_name": "Ethnic",
+"icons": {
+"16": "icon copy.jpg",
+"48": "icon copy.jpg",
+"128": "icon copy.jpg"
+}
+}

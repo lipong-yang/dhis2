@@ -1,0 +1,23 @@
+{
+"launch_path": "sex.html",
+"default_locale":"en",
+"activities": {
+"dhis": {
+"href": "*"
+}
+},
+"appType": "DASHBOARD_WIDGET",
+"name": "SexDistribution",
+"version": "0.1.0",
+"description": "Table of children vaccination by sex by provincial",
+"developer": {
+  "name": "Lipongyang"
+},
+"key": "SexDistribution",
+"short_name": "SexDistribution",
+"icons": {
+"16": "icon.jpg",
+"48": "icon.jpg",
+"128": "icon.jpg"
+}
+}

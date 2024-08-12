@@ -1,0 +1,23 @@
+{
+"launch_path": "nations.html",
+"default_locale":"en",
+"activities": {
+"dhis": {
+"href": "*"
+}
+},
+"appType": "DASHBOARD_WIDGET",
+"name": "Nationality",
+"version": "0.1.0",
+"description": "Table of children vaccination bye nationality.",
+"developer": {
+  "name": "Lipongyang"
+},
+"key": "Nationality",
+"short_name": "Nationality",
+"icons": {
+"16": "iconnation.jpg",
+"48": "iconnation.jpg",
+"128": "iconnation.jpg"
+}
+}
