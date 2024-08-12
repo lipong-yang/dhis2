@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+</head>
+
+<body>
+  hello world
+
+  <script>
+    function getAgeInMonths(dob) {
+      const today = new Date();
+      const birthDate = new Date(dob);
+
+      let ageInMonths = (today.getFullYear() - birthDate.getFullYear()) * 12;
+      ageInMonths += today.getMonth() - birthDate.getMonth();
+
+      if (today.getDate() < birthDate.getDate()) {
+        ageInMonths--;
+      }
+
+      return ageInMonths;
+    }
+    // Function to calculate if the age is less than 1 year
+    function isYoungerThanOneYear(dob) {
+      const today = new Date();
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+      const birthDate = new Date(dob);
+
+      return birthDate >= oneYearAgo;
+    }
+
+    // Example usage:
+    const dob = '2024-06-18'; // Replace with the actual date of birth in 'YYYY-MM-DD' format
+    const result = isYoungerThanOneYear(dob);
+    const age = getAgeInMonths(dob)
+    console.log("Your age is: " + age);
+    console.log(result ? 'Age is less than 1 year' : 'Age is not less than 1 year');
+  </script>
+
+  <script>
+    function getEBLnumber(pv) {
+      return new Promise((resolve, reject) => {
+        // Call the API to get the EBL number
+        $.ajax({
+          url: "https://laos-his.gov.la/dhis/api/analytics.json?dimension=dx:Nt5y1WYCqv3&dimension=ou:W6sNfkJcXGC;YvLOmtTQD6b;XKGgynPS1WZ;rO2RVJWHpCe;FRmrFTE63D0;MBZYTqkEgwf;hdeC7uX9Cko;RdNV4tTRNEo;VWGSudnonm5;quFXhkOJGB4;vBWtCmNNnCG;c4HrGRJoarj;pFCZqWnXtoU;TOgZ99Jv0bN;dOhqCNenSjS;sv6c7CpPcrc;hRQsZhmvqgS;K27JzTKmBKh&showHierarchy=false&hierarchyMeta=false&includeMetadataDetails=true&includeNumDen=true&skipRounding=false&completedOnly=false&outputIdScheme=NAME&filter=pe:THIS_YEAR",
+          method: "GET",
+          headers: {
+            Authorization: "Basic " + btoa("Lipongyang:Lipong!1"), // Replace with your actual API key
+          },
+          success: (response) => {
+            // console.log("EBL number:", response);
+            for (let i = 0; i < response.rows.length; i++) {
+              let data = response.rows[i];
+              if (data[1] === pv) {
+                // console.log("EBL number in " + pv + ":" + data[2]);
+                resolve(data[2]); // Return the EBL number
+                return;
+              }
+            }
+            reject(new Error("Province not found")); // Province not found in the response
+          },
+          error: function (xhr, status, error) {
+            console.error("Error getting EBL number:", error);
+            reject(error); // Return the error
+          }
+        });
+      });
+    }
+
+  </script>
+  <script>
+
+    $(document).ready(function () {
+      $.ajax({
+        url: "https://laos-his.gov.la/dhis/api/29/analytics/events/query/Yj9cJ34AXw6.json?dimension=pe:THIS_YEAR&dimension=ou:IWp9dQGM0bS&dimension=hCTTxOH8FOa.r8bZppSsIvR&dimension=hCTTxOH8FOa.tQeFLjYbqzv&dimension=hCTTxOH8FOa.G9kw7qj1duL:IN:1&stage=hCTTxOH8FOa&displayProperty=NAME&outputType=EVENT&desc=eventdate&paging=false&outputIdScheme=NAME",
+        method: "GET",
+        headers: {
+          Authorization: "Basic " + btoa("Lipongyang:Lipong!1"), // Replace with your actual API key
+        },
+        success: async function (response) {
+          try {
+            console.log(response)
+            let VTEtarget = await getEBLnumber("01 Vientiane Capital")
+            // VTEtarget = parseInt(VTEtarget);
+            let PSLtarget = await getEBLnumber("02 Phongsali")
+            let sumVTE = 0;
+            let sumPSL = 0;
+            for (let i = 0; i < response.rows.length; i++) {
+              let data = response.rows[i];
+              let dob = isYoungerThanOneYear(data[14]);
+              if (data[13] === "01 Vientiane Capital" && dob == true) {
+                sumVTE += parseInt(data[15]); // Replace with the actual column index that contains the total number of VTE in the data
+              }
+              if (data[13] === "02 Phongsali" && dob == true) {
+                sumPSL += parseInt(data[15]); // Replace with the actual column index that contains the total number of VTE in the data
+              }
+            }
+            let BCGCoverageVTE = (sumVTE / VTEtarget) * 100;
+            let BCGCoveragePSL = (sumPSL / PSLtarget) * 100;
+            console.log("BCG Coverage at VT Capital: ", BCGCoverageVTE.toFixed(2));
+            console.log("BCG Coverage at PSL: ", BCGCoveragePSL.toFixed(2));
+          } catch (error) {
+            console.error("Error:", error);
+          }
+          // process the response data and populate the heat map
+
+        },
+        error: function (error) {
+          console.error("Error fetching data:", error);
+        },
+      });
+    });
+  </script>
+</body>
+
+</html>

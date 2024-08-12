@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laos Heat Map with Shaded Borders</title>
+  <!-- bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- Jquery CND -->
+  <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet JavaScript -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Leaflet.heat JavaScript -->
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <!-- d3.js for color scales -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+      top: 10px
+    }
+
+    .province-tooltip {
+      background-color: white;
+      border: 1px solid black;
+      padding: 5px;
+    }
+
+    #description {
+      position: absolute;
+      max-width: 200px;
+      top: 20px;
+      left: 20%;
+      transform: translateX(-50%);
+      background-color: rgba(241, 240, 240, 0.8);
+      padding: 5px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      /* Ensure the description is above the map */
+    }
+
+    .title {
+      color: #343a40;
+      font-weight: bold;
+      background-color: #c8c4c4;
+    }
+
+    li {
+      list-style: none;
+    }
+
+    .box1 {
+      display: inline-block;
+      background-color: #e6f2ff;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+
+    .box2 {
+      display: inline-block;
+      background-color: #004080;
+      opacity: 0.2;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+
+    .box3 {
+      display: inline-block;
+      background-color: #004080;
+      opacity: 0.5;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+
+    .box4 {
+      display: inline-block;
+      background-color: #004080;
+      opacity: 0.8;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+
+    .box5 {
+      display: inline-block;
+      background-color: #004080;
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="description">
+    <h3>BCG Coverage Map</h3>
+    <p>This map shows the intensity of various activities across different provinces of Laos. Hover over the provinces
+      to see more information.</p>
+    <ul>
+      <li><span class="box1"></span> Very Low</li>
+      <li><span class="box2"></span> Low</li>
+      <li><span class="box3"></span> Moderate</li>
+      <li><span class="box4"></span> High</li>
+      <li><span class="box5"></span> Intense</li>
+    </ul>
+  </div>
+  <div class="container p-5" id="map"></div>
+
+  <script>
+    // Define constants for the API details
+    const API_URL = "https://laos-his.gov.la/dhis/api/organisationUnits.json?fields=name,id,geometry&filter=organisationUnitGroups.id:eq:Zh1inFu0Z2O&paging=false";
+    const API_AUTH = "Basic " + btoa("Lipongyang:Lipong!1"); // Replace with your actual API key
+
+    // Function to fetch organization units data
+    function fetchOrganisationUnits() {
+      return $.ajax({
+        url: API_URL,
+        method: "GET",
+        headers: { Authorization: API_AUTH }
+      });
+    }
+
+    // Function to initialize the map
+    function initializeMap() {
+      var map = L.map("map").setView([17.8563, 102.42], 6); // Center the map on Laos
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 18,
+        attribution: "© DHIS2"
+      }).addTo(map);
+      return map;
+    }
+
+    // Function to process and log the data
+    function processOrganisationUnits(data) {
+      return data.organisationUnits.map(unit => ({
+        district: unit.name,
+        coordinates: unit.geometry.coordinates
+      }));
+    }
+
+    // Function to create a heat layer on the map
+    function createHeatLayer(map, heatData) {
+      L.heatLayer(heatData, {
+        radius: 25,
+        blur: 15,
+        maxZoom: 17
+      }).addTo(map);
+    }
+
+    // Function to generate GeoJSON data for Laos provinces
+    function generateGeoJSON(districts) {
+      return {
+        type: "FeatureCollection",
+        features: districts.map(district => ({
+          type: "Feature",
+          properties: {
+            name: district.name,
+            info: "BCG Coverage Information",
+            value: district.value // Placeholder value, replace with actual data
+          },
+          geometry: {
+            type: "Polygon",
+            coordinates: district.coordinates
+          }
+        }))
+      };
+    }
+
+    // Main execution flow
+    $(document).ready(function () {
+      fetchOrganisationUnits()
+        .done(response => {
+          const districts = processOrganisationUnits(response);
+          const map = initializeMap();
+          createHeatLayer(map, districts.map(d => d.coordinates));
+          console.log("============================");
+          console.log(districts[0].coordinates);
+          const laosProvincesGeoJSON = generateGeoJSON(districts);
+          console.log(laosProvincesGeoJSON);
+        })
+        .fail(error => {
+          console.error("Error fetching organisation units data:", error);
+        });
+    });
+
+  </script>
+  <!-- bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+
+</body>
+
+</html>
